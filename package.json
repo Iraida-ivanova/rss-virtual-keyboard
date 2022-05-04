@@ -1,0 +1,50 @@
+{
+  "name": "virtual-keybord",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000r\u0000s\u0000s\u0000-\u0000v\u0000i\u0000r\u0000t\u0000u\u0000a\u0000l\u0000-\u0000k\u0000e\u0000y\u0000b\u0000o\u0000a\u0000r\u0000d\u0000\r\u0000 \u0000\r\u0000 \u0000h\u0000t\u0000t\u0000p\u0000s\u0000:\u0000/\u0000/\u0000i\u0000r\u0000a\u0000i\u0000d\u0000a\u0000-\u0000i\u0000v\u0000a\u0000n\u0000o\u0000v\u0000a\u0000.\u0000g\u0000i\u0000t\u0000h\u0000u\u0000b\u0000.\u0000i\u0000o\u0000/\u0000r\u0000s\u0000s\u0000c\u0000h\u0000o\u0000o\u0000l\u0000-\u0000c\u0000v\u0000/\u0000r\u0000s\u0000s\u0000-\u0000v\u0000i\u0000r\u0000t\u0000u\u0000a\u0000l\u0000-\u0000k\u0000e\u0000y\u0000b\u0000o\u0000a\u0000r\u0000d\u0000\r\u0000 \u0000",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production npx webpack --mode=production",
+    "dev": "cross-env NODE_ENV=development npx webpack serve --mode=development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Iraida-ivanova/rss-virtual-keyboard.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Iraida-ivanova/rss-virtual-keyboard/issues"
+  },
+  "homepage": "https://github.com/Iraida-ivanova/rss-virtual-keyboard#readme",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.7",
+    "css-loader": "^6.7.1",
+    "eslint": "^8.14.0",
+    "eslint-webpack-plugin": "^3.1.1",
+    "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.6.0",
+    "sass": "^1.51.0",
+    "sass-loader": "^12.6.0",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.7.4"
+  },
+  "dependencies": {
+    "node-sass": "^7.0.1",
+    "cross-env": "^7.0.3"
+  }
+}
