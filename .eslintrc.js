@@ -9,7 +9,12 @@ module.exports = {
         "sourceType": "module"
     },
     "rules": {
-        "eol-last": ["error", "never"],
-        "linebreak-style": ["error", "windows"]
+        "eol-last": ["error", "always"],
+        "linebreak-style": ["error", "windows"],
+        "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+        "no-use-before-define": ["error", { "functions": false}],
+        "import/prefer-default-export": "off",
+        "no-sequences": ["error", { "allowInParentheses": true }],
+        "no-param-reassign": ["error", { "props": false }]
     }
 }
