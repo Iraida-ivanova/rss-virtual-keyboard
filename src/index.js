@@ -122,7 +122,11 @@ function removeHighlite(element) {
 }
 function print(element) {
   if (!element.classList.contains('key_dark')) {
-    textarea.value += element.innerText;
+    if (element.dataset.code === 'Space') {
+      textarea.setRangeText(' ', textarea.selectionStart, textarea.selectionEnd, 'end');
+    } else {
+      textarea.setRangeText(element.innerText, textarea.selectionStart, textarea.selectionEnd, 'end');
+    }
     textarea.focus();
   } else {
     switch (element.dataset.code) {
@@ -150,28 +154,21 @@ function print(element) {
         });
         break;
       case ('ShiftLeft' || 'ShiftRight'):
-        window.console.log('c');
-        window.console.log('el', element.target);
         break;
       case 'ArrowUp':
-        if (textarea.selectionEnd >= 64) {
-          textarea.selectionEnd -= 64;
-        }
+        textarea.setRangeText(element.innerText, textarea.selectionStart, textarea.selectionEnd, 'end');
         textarea.focus();
         break;
       case 'ArrowLeft':
-        textarea.selectionStart -= 1;
-        textarea.selectionEnd -= 1;
-        // textarea.setRangeText('', textarea.selectionStart - 1, textarea.selectionEnd, 'end');
+        textarea.setRangeText(element.innerText, textarea.selectionStart, textarea.selectionEnd, 'end');
         textarea.focus();
         break;
       case 'ArrowRight':
-        textarea.selectionStart += 1;
+        textarea.setRangeText(element.innerText, textarea.selectionStart, textarea.selectionEnd, 'end');
         textarea.focus();
         break;
       case 'ArrowDown':
-        textarea.selectionStart += 64;
-        textarea.selectionEnd = textarea.selectionStart;
+        textarea.setRangeText(element.innerText, textarea.selectionStart, textarea.selectionEnd, 'end');
         textarea.focus();
         break;
       default:
