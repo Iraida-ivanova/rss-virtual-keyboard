@@ -96,11 +96,21 @@ function changeLanguage(pressed, code) {
 function changeInnerText() {
   if (keybord.dataset.language === 'en') {
     virtualKeys.forEach((key) => {
-      key.innerText = LETTERSru.get(key.innerText) || key.innerText;
+      if (key.classList.contains('key_upperCase')) {
+        key.innerText = LETTERSru.get(key.innerText.toLowerCase()) || key.innerText;
+        key.innerText.toUpperCase();
+      } else {
+        key.innerText = LETTERSru.get(key.innerText) || key.innerText;
+      }
     });
   } else {
     virtualKeys.forEach((key) => {
-      key.innerText = LETTERSen.get(key.innerText) || key.innerText;
+      if (key.classList.contains('key_upperCase')) {
+        key.innerText = LETTERSen.get(key.innerText.toLowerCase()) || key.innerText;
+        key.innerText.toUpperCase();
+      } else {
+        key.innerText = LETTERSen.get(key.innerText) || key.innerText;
+      }
     });
   }
 }
