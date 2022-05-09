@@ -19,6 +19,9 @@
     font-weight: bold;
     padding: 15px 10px;
   }
+  &_upperCase {
+    text-transform: uppercase;
+  }
 }
 @keyframes move-key {
   from {left: 0; top: 0}

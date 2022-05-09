@@ -1,7 +1,7 @@
 @import 'styles/variables.scss';
 @import 'styles/base.scss';
 
-.main {
+.virtual-keybord {
   width: 925px;
   margin: 30px auto;
   border-radius: 5px;
@@ -14,5 +14,10 @@
   border: 10px solid $color-background;
   border-radius: 5px;
   font-size: 2.5rem;
+}
+.description, .language {
+  font-size: 2rem;
+  text-align: center;
+  margin-top: 15px;
 }
 
