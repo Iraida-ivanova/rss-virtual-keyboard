@@ -38,7 +38,7 @@ function addVirtualKeyClickhandler() {
     key = event.target;
     if (key.classList.contains('key')) {
       highlightKey(key);
-      print(key);
+      print(event);
     }
   });
   document.addEventListener('mouseup', () => {
@@ -120,7 +120,16 @@ function highlightKey(element) {
 function removeHighlite(element) {
   element.classList.remove('key-push');
 }
-function print(element) {
+function print(event) {
+  const element = event.target;
+  if (event.shiftKey) {
+    upperCaseKey(event);
+    keybord.addEventListener('mouseover', upperCaseKey);
+    keybord.addEventListener('mouseout', lowerCaseKey);
+  } else {
+    keybord.removeEventListener('mouseover', upperCaseKey);
+    keybord.removeEventListener('mouseout', lowerCaseKey);
+  }
   if (!element.classList.contains('key_dark')) {
     if (element.dataset.code === 'Space') {
       textarea.setRangeText(' ', textarea.selectionStart, textarea.selectionEnd, 'end');
@@ -130,6 +139,9 @@ function print(element) {
     textarea.focus();
   } else {
     switch (element.dataset.code) {
+      case 'ShiftLeft':
+        document.addEventListener('mouseup', onMouseUpClickHandler.bind(null, element));
+        break;
       case 'Backspace':
         textarea.setRangeText('', textarea.selectionStart - 1, textarea.selectionEnd, 'end');
         textarea.focus();
@@ -153,8 +165,6 @@ function print(element) {
           }
         });
         break;
-      case ('ShiftLeft' || 'ShiftRight'):
-        break;
       case 'ArrowUp':
         textarea.setRangeText(element.innerText, textarea.selectionStart, textarea.selectionEnd, 'end');
         textarea.focus();
@@ -174,5 +184,40 @@ function print(element) {
       default:
         textarea.focus();
     }
+  }
+}
+
+function onMouseUpClickHandler(element, event) {
+  if (keybord.dataset.shiftKey === 'false') {
+    return;
+  }
+  if (event.target !== element) {
+    highlightKey(element);
+    keybord.dataset.shiftKey = 'true';
+    upperCaseKey(event);
+    keybord.addEventListener('mouseover', upperCaseKey);
+    keybord.addEventListener('mouseout', lowerCaseKey);
+    keybord.addEventListener('click', turnOffShift);
+  }
+}
+function upperCaseKey(event) {
+  if (event.shiftKey || keybord.dataset.shiftKey === 'true') {
+    if (event.target.classList.contains('key') && !event.target.classList.contains('key_dark')) {
+      event.target.classList.add('key_upperCase');
+    }
+  }
+}
+function lowerCaseKey(event) {
+  event.target.classList.remove('key_upperCase');
+}
+function turnOffShift(event) {
+  if (event.target.dataset.code === 'ShiftLeft' && keybord.dataset.shiftKey === 'true') {
+    document.removeEventListener('mouseup', onMouseUpClickHandler);
+    keybord.removeEventListener('mouseover', upperCaseKey);
+    keybord.removeEventListener('mouseout', lowerCaseKey);
+    keybord.removeEventListener('click', turnOffShift);
+    event.target.classList.remove('key_upperCase');
+    removeHighlite(event.target);
+    keybord.dataset.shiftKey = 'false';
   }
 }
