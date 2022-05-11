@@ -2,6 +2,7 @@ import './style.scss';
 import { createDomNode } from './utils/utils';
 import { Keybord } from './components/Keybord';
 import { LETTERSru, LETTERSen } from './utils/letters';
+import { keys } from './utils/keys';
 
 const main = createDomNode('div', 'main');
 const virtualKeybord = createDomNode('div', 'virtual-keybord');
@@ -24,28 +25,27 @@ main.append(language);
 const virtualKeys = document.querySelectorAll('.key');
 
 window.onload = function onload() {
-  addVirtualKeyClickhandler();
-  addKeyClickhandler();
+  addVirtualKeyMouseDownHandler();
+  addKeydownHandler();
   addCtrlShiftClickHandler();
+  addMouseUpHandler();
 };
 function getLanguage() {
   return localStorage.getItem('lang');
 }
-function addVirtualKeyClickhandler() {
+function addVirtualKeyMouseDownHandler() {
   let key = '';
   keybord.addEventListener('mousedown', (event) => {
     event.preventDefault();
     key = event.target;
     if (key.classList.contains('key')) {
+      keybord.dataset.key = key.dataset.code;
       highlightKey(key);
       print(event);
     }
   });
-  document.addEventListener('mouseup', () => {
-    virtualKeys.forEach((el) => removeHighlite(el));
-  });
 }
-function addKeyClickhandler() {
+function addKeydownHandler() {
   document.addEventListener('keydown', (event) => {
     virtualKeys.forEach((key) => {
       if (event.code === key.dataset.code) {
@@ -117,18 +117,18 @@ function changeInnerText() {
 function highlightKey(element) {
   element.classList.add('key-push');
 }
-function removeHighlite(element) {
+function removeHighlight(element) {
   element.classList.remove('key-push');
 }
 function print(event) {
   const element = event.target;
   if (event.shiftKey) {
-    upperCaseKey(event);
-    keybord.addEventListener('mouseover', upperCaseKey);
-    keybord.addEventListener('mouseout', lowerCaseKey);
+    applyShiftKey(event);
+    keybord.addEventListener('mouseover', applyShiftKey);
+    keybord.addEventListener('mouseout', cancelShiftKey);
   } else {
-    keybord.removeEventListener('mouseover', upperCaseKey);
-    keybord.removeEventListener('mouseout', lowerCaseKey);
+    keybord.removeEventListener('mouseover', applyShiftKey);
+    keybord.removeEventListener('mouseout', cancelShiftKey);
   }
   if (!element.classList.contains('key_dark')) {
     if (element.dataset.code === 'Space') {
@@ -139,9 +139,6 @@ function print(event) {
     textarea.focus();
   } else {
     switch (element.dataset.code) {
-      case 'ShiftLeft':
-        document.addEventListener('mouseup', onMouseUpClickHandler.bind(null, element));
-        break;
       case 'Backspace':
         textarea.setRangeText('', textarea.selectionStart - 1, textarea.selectionEnd, 'end');
         textarea.focus();
@@ -187,37 +184,70 @@ function print(event) {
   }
 }
 
-function onMouseUpClickHandler(element, event) {
-  if (keybord.dataset.shiftKey === 'false') {
-    return;
-  }
-  if (event.target !== element) {
-    highlightKey(element);
-    keybord.dataset.shiftKey = 'true';
-    upperCaseKey(event);
-    keybord.addEventListener('mouseover', upperCaseKey);
-    keybord.addEventListener('mouseout', lowerCaseKey);
-    keybord.addEventListener('click', turnOffShift);
-  }
+function addMouseUpHandler() {
+  document.addEventListener('mouseup', onMouseup);
 }
-function upperCaseKey(event) {
+function onMouseup(event) {
+  let elem = '';
+  virtualKeys.forEach((el) => {
+    if (el.dataset.code === keybord.dataset.key) {
+      elem = el;
+      if (event.target.dataset.code !== elem.dataset.code) {
+        if (elem.dataset.code === 'ShiftLeft' || elem.dataset.code === 'ShiftRight') {
+          keybord.dataset.shiftKey = 'true';
+          highlightKey(elem);
+          applyShiftKey(event);
+          document.addEventListener('mouseover', applyShiftKey);
+          document.addEventListener('mouseout', cancelShiftKey);
+          document.addEventListener('click', turnOffShift);
+        }
+      } else {
+        removeHighlight(el);
+      }
+    }
+  });
+}
+function applyShiftKey(event) {
+  window.console.log(event);
   if (event.shiftKey || keybord.dataset.shiftKey === 'true') {
     if (event.target.classList.contains('key') && !event.target.classList.contains('key_dark')) {
-      event.target.classList.add('key_upperCase');
+      if (event.target.dataset.code.startsWith('Key')) {
+        event.target.classList.add('key_upperCase');
+      } else {
+        const key = findObjKey(event);
+        if (keybord.dataset.language === 'ru') {
+          event.target.innerText = key[1].shiftRu;
+        } else {
+          event.target.innerText = key[1].shiftEn;
+        }
+      }
     }
   }
 }
-function lowerCaseKey(event) {
-  event.target.classList.remove('key_upperCase');
+function cancelShiftKey(event) {
+  if (event.target.classList.contains('key') && !event.target.classList.contains('key_dark')) {
+    if (event.target.dataset.code.startsWith('Key')) {
+      event.target.classList.remove('key_upperCase');
+    } else {
+      const key = findObjKey(event);
+      if (keybord.dataset.language === 'ru') {
+        event.target.innerText = key[1].charRu;
+      } else {
+        event.target.innerText = key[1].charEn;
+      }
+    }
+  }
 }
 function turnOffShift(event) {
-  if (event.target.dataset.code === 'ShiftLeft' && keybord.dataset.shiftKey === 'true') {
-    document.removeEventListener('mouseup', onMouseUpClickHandler);
-    keybord.removeEventListener('mouseover', upperCaseKey);
-    keybord.removeEventListener('mouseout', lowerCaseKey);
+  if ((event.target.dataset.code === 'ShiftLeft' || event.target.dataset.code === 'ShiftRight') && keybord.dataset.shiftKey === 'true') {
+    keybord.removeEventListener('mouseover', applyShiftKey);
+    keybord.removeEventListener('mouseout', cancelShiftKey);
     keybord.removeEventListener('click', turnOffShift);
     event.target.classList.remove('key_upperCase');
-    removeHighlite(event.target);
+    removeHighlight(event.target);
     keybord.dataset.shiftKey = 'false';
   }
+}
+function findObjKey(event) {
+  return Object.entries(keys).find((el) => el[0] === event.target.dataset.code);
 }
