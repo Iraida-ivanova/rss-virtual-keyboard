@@ -51,10 +51,25 @@ function addKeydownHandler() {
       }
     });
   });
-  document.addEventListener('keyup', () => {
-    virtualKeys.forEach((key) => {
-      key.classList.remove('key-push');
-    });
+  document.addEventListener('keyup', (event) => {
+    if (event.getModifierState('CapsLock')) {
+      window.console.log('getmod');
+      keybord.classList.add('caps-lock');
+      virtualKeys.forEach((key) => {
+        key.classList.remove('key-push');
+        if (!key.classList.contains('key_dark')) {
+          key.classList.add('key_upperCase');
+        }
+      });
+    } else {
+      keybord.classList.remove('caps-lock');
+      virtualKeys.forEach((key) => {
+        key.classList.remove('key-push');
+        if (!key.classList.contains('key_dark')) {
+          key.classList.remove('key_upperCase');
+        }
+      });
+    }
   });
 }
 
