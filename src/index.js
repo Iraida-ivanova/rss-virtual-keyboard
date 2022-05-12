@@ -14,7 +14,7 @@ const keybord = new Keybord(lang).createKeybord();
 const description = createDomNode('p', 'description');
 const language = createDomNode('p', 'language');
 description.innerText = 'Клавиатура создана в операционной системе Windows';
-language.innerText = 'Для переключения языка комбинация Ctrl + Shift';
+language.innerText = 'Для переключения языка комбинация Ctrl + Alt';
 
 document.body.append(main);
 main.append(virtualKeybord);
@@ -27,12 +27,10 @@ const virtualKeys = document.querySelectorAll('.key');
 window.onload = function onload() {
   addVirtualKeyMouseDownHandler();
   addKeydownHandler();
-  addCtrlShiftClickHandler();
   addMouseUpHandler();
+  document.addEventListener('keydown', changeLanguage);
 };
-function getLanguage() {
-  return localStorage.getItem('lang');
-}
+
 function addVirtualKeyMouseDownHandler() {
   let key = '';
   keybord.addEventListener('mousedown', (event) => {
@@ -59,76 +57,14 @@ function addKeydownHandler() {
     });
   });
 }
-function addCtrlShiftClickHandler() {
-  const pressed = new Set();
-  document.addEventListener('keydown', ({ code }) => {
-    changeLanguage(pressed, code);
-  });
-  keybord.addEventListener('mousedown', (event) => {
-    let code = '';
-    if (event.target.classList.contains('key')) {
-      code = event.target.dataset.code;
-      changeLanguage(pressed, code);
-    }
-  });
-  document.addEventListener('keyup', (event) => {
-    pressed.delete(event.code);
-  });
-  keybord.addEventListener('mouseup', (event) => {
-    pressed.delete(event.target.dataset.code);
-  });
-}
-function changeLanguage(pressed, code) {
-  pressed.add(code);
-  if ((pressed.has('ControlLeft') || pressed.has('ControlRight')) && (pressed.has('ShiftLeft') || pressed.has('ShiftRight'))) {
-    pressed.clear();
 
-    changeInnerText();
-    if (keybord.dataset.language === 'en') {
-      keybord.dataset.language = 'ru';
-      localStorage.setItem('lang', 'ru');
-    } else {
-      keybord.dataset.language = 'en';
-      localStorage.setItem('lang', 'en');
-    }
-  }
-}
-function changeInnerText() {
-  if (keybord.dataset.language === 'en') {
-    virtualKeys.forEach((key) => {
-      if (key.classList.contains('key_upperCase')) {
-        key.innerText = LETTERSru.get(key.innerText.toLowerCase()) || key.innerText;
-        key.innerText.toUpperCase();
-      } else {
-        key.innerText = LETTERSru.get(key.innerText) || key.innerText;
-      }
-    });
-  } else {
-    virtualKeys.forEach((key) => {
-      if (key.classList.contains('key_upperCase')) {
-        key.innerText = LETTERSen.get(key.innerText.toLowerCase()) || key.innerText;
-        key.innerText.toUpperCase();
-      } else {
-        key.innerText = LETTERSen.get(key.innerText) || key.innerText;
-      }
-    });
-  }
-}
-function highlightKey(element) {
-  element.classList.add('key-push');
-}
-function removeHighlight(element) {
-  element.classList.remove('key-push');
-}
 function print(event) {
   const element = event.target;
   if (event.shiftKey) {
     applyShiftKey(event);
-    keybord.addEventListener('mouseover', applyShiftKey);
-    keybord.addEventListener('mouseout', cancelShiftKey);
-  } else {
-    keybord.removeEventListener('mouseover', applyShiftKey);
-    keybord.removeEventListener('mouseout', cancelShiftKey);
+    document.addEventListener('mouseover', applyShiftKey);
+    document.addEventListener('mouseout', cancelShiftKey);
+    document.addEventListener('click', turnOffShift);
   }
   if (!element.classList.contains('key_dark')) {
     if (element.dataset.code === 'Space') {
@@ -156,6 +92,7 @@ function print(event) {
         textarea.focus();
         break;
       case 'CapsLock':
+        keybord.classList.toggle('caps-lock');
         virtualKeys.forEach((el) => {
           if (!el.classList.contains('key_dark')) {
             el.classList.toggle('key_upperCase');
@@ -200,6 +137,9 @@ function onMouseup(event) {
           document.addEventListener('mouseover', applyShiftKey);
           document.addEventListener('mouseout', cancelShiftKey);
           document.addEventListener('click', turnOffShift);
+        } else if (elem.dataset.code === 'ControlLeft' || elem.dataset.code === 'ControlRight') {
+          highlightKey(elem);
+          document.addEventListener('click', changeLanguage);
         }
       } else {
         removeHighlight(el);
@@ -208,26 +148,32 @@ function onMouseup(event) {
   });
 }
 function applyShiftKey(event) {
-  window.console.log(event);
-  if (event.shiftKey || keybord.dataset.shiftKey === 'true') {
-    if (event.target.classList.contains('key') && !event.target.classList.contains('key_dark')) {
-      if (event.target.dataset.code.startsWith('Key')) {
-        event.target.classList.add('key_upperCase');
+  if ((event.shiftKey || keybord.dataset.shiftKey === 'true') && isChar(event)) {
+    if (isLetter(event)) {
+      if (keybord.classList.contains('caps-lock')) {
+        event.target.classList.remove('key_upperCase');
       } else {
-        const key = findObjKey(event);
-        if (keybord.dataset.language === 'ru') {
-          event.target.innerText = key[1].shiftRu;
-        } else {
-          event.target.innerText = key[1].shiftEn;
-        }
+        event.target.classList.add('key_upperCase');
+      }
+    } else {
+      const key = findObjKey(event);
+      if (keybord.dataset.language === 'ru') {
+        event.target.innerText = key[1].shiftRu;
+      } else {
+        event.target.innerText = key[1].shiftEn;
       }
     }
   }
 }
+
 function cancelShiftKey(event) {
-  if (event.target.classList.contains('key') && !event.target.classList.contains('key_dark')) {
-    if (event.target.dataset.code.startsWith('Key')) {
-      event.target.classList.remove('key_upperCase');
+  if (isChar(event)) {
+    if (isLetter(event)) {
+      if (!keybord.classList.contains('caps-lock')) {
+        event.target.classList.remove('key_upperCase');
+      } else {
+        event.target.classList.add('key_upperCase');
+      }
     } else {
       const key = findObjKey(event);
       if (keybord.dataset.language === 'ru') {
@@ -243,11 +189,61 @@ function turnOffShift(event) {
     keybord.removeEventListener('mouseover', applyShiftKey);
     keybord.removeEventListener('mouseout', cancelShiftKey);
     keybord.removeEventListener('click', turnOffShift);
-    event.target.classList.remove('key_upperCase');
     removeHighlight(event.target);
     keybord.dataset.shiftKey = 'false';
   }
 }
+
+function changeLanguage(event) {
+  if (event.target.dataset.code === 'AltLeft' || event.target.dataset.code === 'AltRight' || (event.altKey && event.ctrlKey)) {
+    changeInnerText();
+    if (keybord.dataset.language === 'en') {
+      keybord.dataset.language = 'ru';
+      localStorage.setItem('lang', 'ru');
+    } else {
+      keybord.dataset.language = 'en';
+      localStorage.setItem('lang', 'en');
+    }
+  }
+}
+function changeInnerText() {
+  if (keybord.dataset.language === 'en') {
+    virtualKeys.forEach((key) => {
+      if (key.classList.contains('key_upperCase')) {
+        key.innerText = LETTERSru.get(key.innerText.toLowerCase()) || key.innerText;
+        key.innerText.toUpperCase();
+      } else {
+        key.innerText = LETTERSru.get(key.innerText) || key.innerText;
+      }
+    });
+  } else {
+    virtualKeys.forEach((key) => {
+      if (key.classList.contains('key_upperCase')) {
+        key.innerText = LETTERSen.get(key.innerText.toLowerCase()) || key.innerText;
+        key.innerText.toUpperCase();
+      } else {
+        key.innerText = LETTERSen.get(key.innerText) || key.innerText;
+      }
+    });
+  }
+}
+function getLanguage() {
+  return localStorage.getItem('lang');
+}
+
+function isChar(event) {
+  return (event.target.classList.contains('key') && !event.target.classList.contains('key_dark'));
+}
+function isLetter(event) {
+  return (event.target.dataset.code.startsWith('Key'));
+}
 function findObjKey(event) {
   return Object.entries(keys).find((el) => el[0] === event.target.dataset.code);
+}
+
+function highlightKey(element) {
+  element.classList.add('key-push');
+}
+function removeHighlight(element) {
+  element.classList.remove('key-push');
 }
